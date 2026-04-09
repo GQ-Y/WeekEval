@@ -1,0 +1,5 @@
+{
+  "name": "员工周度综合考评系统",
+  "description": "基于企业微信考勤和会话数据的员工周度综合考评管理工具",
+  "requestFramePermissions": []
+}
