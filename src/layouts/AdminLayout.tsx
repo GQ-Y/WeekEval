@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Upload, Calculator, FileText, Table, History, LogOut, ShieldCheck } from 'lucide-react';
-import { cn, getWeekYear } from '../lib/utils';
+import { cn, getWeekYear, getWeekDateRange } from '../lib/utils';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../lib/utils';
 
@@ -8,6 +8,7 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { week, year } = getWeekYear();
+  const dateRange = getWeekDateRange(year, week);
   const [isPublished, setIsPublished] = useState(false);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function AdminLayout() {
             <div className="flex items-center space-x-6">
               <div className="flex flex-col items-end justify-center">
                 <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">当前统计周次</span>
-                <span className="text-slate-900 text-sm font-semibold">{year}年第{week}周</span>
+                <span className="text-slate-900 text-sm font-semibold">{year}年第{week}周 <span className="text-slate-500 font-normal">({dateRange})</span></span>
               </div>
               <div className="h-8 w-px bg-slate-200"></div>
               <div className="flex items-center space-x-2">

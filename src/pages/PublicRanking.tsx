@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchApi, getWeekYear, cn } from '../lib/utils';
+import { fetchApi, getWeekYear, getWeekDateRange, cn } from '../lib/utils';
 import { Trophy, Medal, Award, Building2, Users } from 'lucide-react';
 
 export default function PublicRanking() {
@@ -10,6 +10,8 @@ export default function PublicRanking() {
   const [deptRanking, setDeptRanking] = useState<any[]>([]);
   const [message, setMessage] = useState('');
   const [history, setHistory] = useState<any[]>([]);
+
+  const dateRange = getWeekDateRange(selectedYear, selectedWeek);
 
   useEffect(() => {
     fetchApi('/api/history/list').then(res => {
@@ -63,6 +65,9 @@ export default function PublicRanking() {
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
             {selectedYear}年第{selectedWeek}周员工综合考评公示
           </h1>
+          <p className="text-blue-100 text-sm md:text-base font-medium mb-4">
+            ({dateRange})
+          </p>
           <p className="text-blue-200 text-sm md:text-base font-medium max-w-2xl mx-auto">
             公平 · 公正 · 公开 | 每周一准时更新，表彰优秀，激励前行
           </p>

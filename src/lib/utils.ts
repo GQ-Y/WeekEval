@@ -14,6 +14,25 @@ export const getWeekYear = () => {
   return { week, year: now.getFullYear() };
 };
 
+export const getWeekDateRange = (year: number, week: number) => {
+  const jan4 = new Date(year, 0, 4);
+  const jan4Day = jan4.getDay() || 7;
+  
+  const week1Monday = new Date(year, 0, 4 - jan4Day + 1);
+  
+  const start = new Date(week1Monday.getTime() + (week - 1) * 7 * 24 * 60 * 60 * 1000);
+  const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+
+  const formatDate = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  return `${formatDate(start)} ~ ${formatDate(end)}`;
+};
+
 export const fetchApi = async (url: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('admin_token');
   const headers = {
