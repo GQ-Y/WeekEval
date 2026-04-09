@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { fetchApi, getWeekYear } from '../../lib/utils';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { fetchApi, getWeekYear, cn } from '../../lib/utils';
 import { useOutletContext } from 'react-router-dom';
+import { Send, History, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function PublishHistory() {
   const { week, year } = getWeekYear();
   const { isPublished } = useOutletContext<{ isPublished: boolean }>();
   const [history, setHistory] = useState<any[]>([]);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     fetchHistory();
@@ -20,82 +21,112 @@ export default function PublishHistory() {
   };
 
   const handlePublish = async () => {
-    if (confirm('确定发布本周公示？发布后将锁定所有员工分数，不可再修改，员工可查看排行榜')) {
+    if (!window.confirm('确认公示本周考评结果吗？公示后将无法再修改分数！')) return;
+    
+    setPublishing(true);
+    try {
       const res = await fetchApi('/api/publish/week', {
         method: 'POST',
         body: JSON.stringify({ week, year })
       });
       if (res.success) {
-        alert('发布成功');
-        window.location.reload();
+        alert('公示成功！');
+        window.location.reload(); // Reload to update layout state
+      } else {
+        alert('公示失败');
       }
+    } finally {
+      setPublishing(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">公示与历史管理</h2>
+    <div className="space-y-8 max-w-5xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">公示与历史</h2>
+        <p className="text-sm text-slate-500 mt-1">发布本周考评结果，或查看历史周次数据</p>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">本周公示管理</h3>
-        <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-          <div>
-            <p className="font-medium text-gray-900">{year}年第{week}周</p>
-            <p className="text-sm text-gray-500 mt-1">
-              状态: <span className={isPublished ? "text-green-600 font-medium" : "text-gray-500"}>{isPublished ? '已公示' : '未公示'}</span>
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            {isPublished ? (
-              <span className="text-sm text-gray-500 flex items-center">
-                <CheckCircle className="w-4 h-4 mr-1 text-green-500" /> 本周公示已发布，分数已锁定
-              </span>
-            ) : (
-              <span className="text-sm text-gray-500 flex items-center">
-                <AlertCircle className="w-4 h-4 mr-1 text-orange-500" /> 请确认评分无误后发布公示
-              </span>
-            )}
+      <div className="bg-white shadow-xl shadow-slate-200/40 rounded-3xl p-10 border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-slate-900 mb-2">本周考评公示 ({year}年第{week}周)</h3>
+          <p className="text-slate-500 text-sm leading-relaxed max-w-xl">
+            公示后，所有员工可在「公共查询页」查看本周的综合排行榜及部门平均分排行。
+            <strong className="text-rose-500 font-medium ml-1">注意：公示操作不可逆，公示后本周所有分数将被锁定，无法再次修改。</strong>
+          </p>
+        </div>
+        
+        <div className="flex-shrink-0">
+          {isPublished ? (
+            <div className="flex items-center px-6 py-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 font-bold">
+              <CheckCircle className="w-6 h-6 mr-3 text-emerald-500" />
+              本周已公示
+            </div>
+          ) : (
             <button
               onClick={handlePublish}
-              disabled={isPublished}
-              className="px-6 py-2 bg-[#165DFF] text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              disabled={publishing}
+              className="flex items-center px-8 py-4 bg-blue-600 text-white text-lg font-bold rounded-2xl hover:bg-blue-700 disabled:bg-slate-300 transition-all shadow-md hover:shadow-lg transform active:scale-95"
             >
-              发布本周公示
+              <Send className="w-5 h-5 mr-3" />
+              {publishing ? '发布中...' : '确认无误，立即公示'}
             </button>
-          </div>
+          )}
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">历史周次管理</h3>
+      <div className="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden mt-8">
+        <div className="px-6 py-5 border-b border-slate-100 bg-white flex items-center">
+          <History className="w-5 h-5 text-slate-400 mr-3" />
+          <h3 className="text-lg font-bold text-slate-900">历史考评记录</h3>
+        </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">周次</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">公示状态</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">员工数量</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">周次</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">参评人数</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">状态</th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">操作</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-slate-50">
               {history.map((row, i) => (
-                <tr key={i} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.year}年第{row.week}周</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={row.is_published ? "text-green-600" : "text-gray-500"}>
-                      {row.is_published ? '已公示' : '未公示'}
-                    </span>
+                <tr key={i} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
+                    {row.year}年 第{row.week}周
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.emp_count}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
-                    <button className="text-[#165DFF] hover:text-blue-900">查看详情</button>
-                    <button className="text-[#165DFF] hover:text-blue-900">导出报表</button>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    {row.emp_count} 人
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {row.is_published === 1 ? (
+                      <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        已公示
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                        未公示
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a 
+                      href={`/public?week=${row.week}&year=${row.year}`} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="text-blue-600 hover:text-blue-900 hover:underline"
+                    >
+                      查看榜单
+                    </a>
                   </td>
                 </tr>
               ))}
+              {history.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500">暂无历史记录</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
